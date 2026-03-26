@@ -1,0 +1,52 @@
+name: MLOps CI Pipeline
+# 翻译：给这份质检任务起个帅气的名字。以后在 GitHub 网页上显示的就是这个名字。
+
+on:
+    push:
+        branches: ["main"]
+# 翻译：【唤醒机器人的条件】。只要有人往代码库的 "main"（主分支）里 push 了新代码，机器人你立刻给我醒过来干活！
+
+jobs:
+    test-model:
+        runs-on: ubuntu-latest
+        # 翻译：【准备工作台】。机器人，请你去机房里给我搬一台装了最新版 Ubuntu Linux 系统的空白电脑来运行任务。
+
+        steps:
+            # 翻译：【开始执行以下 5 个步骤】：
+
+            - name: Checkout Code
+              uses: actions/checkout@v4
+              # 翻译：【步骤 1：下载代码】。
+              # uses 的意思是“借用别人造好的轮子”。这里借用了官方工具。
+              # 机器人，请把我仓库里的所有代码、模型文件（pkl），下载到你刚才搬来的那台空白电脑里。
+
+            - name: Setup uv (Modern Python Package Manager)
+              uses: astral-sh/setup-uv@v5
+              with:
+                  enable-cache: true
+              # 翻译：【步骤 2：安装 uv】。
+              # 机器人，这台空白电脑里啥也没有。请你去下载目前地球上最快的 Python 包管理器 "uv"。
+              # enable-cache=true 的意思是：如果你之前下过依赖包，存起来，下次直接用，别傻乎乎重新下载了（提速）。
+
+            - name: Install Python
+              run: uv python install 3.10
+              # 翻译：【步骤 3：安装 Python】。
+              # 机器人，用 uv 给这台电脑安装 Python 3.10 版本。
+
+            - name: Sync Dependencies
+              run: uv sync
+              # 翻译：【步骤 4：安装依赖包】。
+              # 机器人，请执行 `uv sync` 命令。它会自动照着我仓库里的 uv.lock 文件，把 Pandas、Scikit-Learn 等所有包，一分不差地安装到电脑里。此时，这台电脑的环境和我的本地电脑完全一模一样了！
+
+            - name: Test Model Loading & Pipeline Integrity
+              run: |
+                  uv run python -c "
+                  import joblib, pandas as pd
+                  model = joblib.load('telco_churn_pipeline.pkl')
+                  print('✅ 自动化测试通过：模型与 Pipeline 加载成功！')
+                  "
+              # 翻译：【步骤 5：终极试吃（核心质检）】。
+              # 机器人，现在环境搭好了，请帮我执行这段 Python 脚本。
+              # 脚本的内容是：尝试把那个训练好的模型文件（pkl）加载进内存。
+              # 为什么要测这个？因为如果在步骤 4 中少装了一个包，或者 Scikit-Learn 版本不对，这里加载模型必定会报错（崩溃）！
+              # 如果没报错，顺利打印出了“✅ 测试通过”，说明这套代码和模型在崭新的电脑上运行完美，没有 Bug！
