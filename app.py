@@ -7,7 +7,7 @@ st.set_page_config(page_title="电信流失预警系统", page_icon="📞")
 
 @st.cache_resource
 def load_model():
-    return joblib.load("best_model.pkl")
+    return joblib.load("telco_churn_pipeline.pkl")
 
 model = load_model()
 
